@@ -6,20 +6,12 @@
     />
     <div class="presentation" ref="presentation">
       <div class="presentation-content">
-        <h1>¡Bienvenido a Mi Tienda! 🛍️</h1>
-        <p>Encuentra los mejores productos al mejor precio.</p>
-      </div>
-    </div>
-    <div class="search-container" ref="search">
-      <div class="input-group container">
-        <input 
-          type="text" 
-          class="form-control" 
-          placeholder="Busca un producto..." 
-          v-model="searchQuery" 
-          @keyup.enter="searchProducts"
-        />
-        <button class="btn btn-primary" @click="searchProducts">Buscar</button>
+        <h1>¡Bienvenido a <b>AhorraYa</b>! <img 
+          src="https://investmentgold.es/wp-content/uploads/2019/03/money-growh-1.gif" 
+          alt="Money Growth"
+          class="presentation-img"
+        /></h1>        
+        <p>Compara precios entre supermercados y ahorra en tus compras</p>
       </div>
     </div>
     <ProductList 
@@ -29,6 +21,8 @@
       <CartComponent 
         :cartItems="cart" 
         @clear-cart="clearCart"
+        @close-cart="closeCart"
+        @update-quantity="updateCartItemQuantity"
       />
     </div>
   </div>
@@ -42,15 +36,15 @@ import CartComponent from './components/CartComponent.vue';
 export default {
   data() {
     return {
-      cart: [],
-      showCart: false,
-      searchQuery: '',
-      autoScrolled: false, // Bandera para controlar si ya hizo scroll automático
+      cart: [], // Lista de productos en el carrito
+      showCart: false, // Bandera para mostrar/ocultar el carrito
+      searchQuery: '', // Consulta de búsqueda
+      autoScrolled: false, // Bandera para controlar el desplazamiento automático
     };
   },
   methods: {
     addToCart(product) {
-      const existingItem = this.cart.find((item) => item.id === product.id);
+      const existingItem = this.cart.find((item) => item.name === product.name);
       if (existingItem) {
         existingItem.quantity++;
       } else {
@@ -63,24 +57,19 @@ export default {
     toggleCart() {
       this.showCart = !this.showCart;
     },
-    handleScroll() {
-      const scrollY = window.scrollY;
-      const presentationHeight = this.$refs.presentation.offsetHeight;
-
-      if (scrollY > 50 && !this.autoScrolled) {
-        // Activar scroll automático cuando pasa un poco
-        this.autoScrolled = true; // Evita que se dispare múltiples veces
-        this.scrollToSearch();
-      }
+    closeCart() {
+      this.showCart = false;
     },
-    scrollToSearch() {
-      const searchElement = this.$refs.search;
-      const offsetTop = searchElement.offsetTop;
-
-      window.scrollTo({
-        top: offsetTop - 20, // Ajusta el desplazamiento
-        behavior: 'smooth', // Animación suave
-      });
+    updateCartItemQuantity({ name, quantity }) {
+      // Actualiza la cantidad de un producto en el carrito
+      const item = this.cart.find((product) => product.name === name);
+      if (item) {
+        item.quantity = quantity;
+        // Elimina el producto si la cantidad es 0
+        if (quantity === 0) {
+          this.cart = this.cart.filter((product) => product.name !== name);
+        }
+      }
     },
     searchProducts() {
       alert(`Buscando: ${this.searchQuery}`); // Simular búsqueda
@@ -100,62 +89,64 @@ export default {
 };
 </script>
 
-<style>
-/* Sección de presentación */
+<style scoped>
+/* Estilos de presentación */
 .presentation {
-  height: 100vh; /* Toma el 100% de la pantalla */
+  height: 50vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  background: url('https://via.placeholder.com/1920x1080') no-repeat center center/cover;
+  align-items: center;
+  background: url('https://cdn.businessinsider.es/sites/navi.axelspringer.es/public/media/image/2020/07/hombre-comprando-supermercado-2013939.jpg?tf=3000x') no-repeat center center/cover;
   color: white;
   text-align: center;
+  font-family: "Afacad Flux", serif;
+  font-weight: 500;
+  padding: 0 20px;
 }
 
 .presentation-content {
-  background: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
-  padding: 20px;
-  border-radius: 10px;
+  margin-top: 100px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 20px 30px;
+  border-radius: 15px;
+  max-width: 80%;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .presentation h1 {
-  font-size: 3rem;
-  margin-bottom: 20px;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
 }
 
 .presentation p {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+  margin-top: 10px;
 }
 
-/* Contenedor del buscador */
-.search-container {
-  position: relative;
-  background-color: white;
-  padding: 20px 0;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
-
-.input-group {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-/* Ajustes generales */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
+.presentation-img {
+  margin-top: 10px;
+  width: 80px;
+  height: auto;
 }
 
 .cart-overlay {
   position: fixed;
   top: 0;
   right: 0;
-  width: 300px;
-  height: 100%;
-  background: white;
+  background: transparent;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   padding: 20px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 </style>
